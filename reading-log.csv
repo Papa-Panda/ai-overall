@@ -1,2 +1,3 @@
 Date,Title,Folder,Link,Tags,OneLineSummary,Status
 2026-08-05,Frontis-MA1: Training an AI4AI Model towards Recursive Self-Improvement in Machine Learning Engineering,2026_frontis-ma1,https://arxiv.org/abs/2607.28568,"ai4ai,rsi,mle,agentic-rl,post-training",35B meta-evolution agent for MLE using 4 atomic operators + OpenMLE full-stack (Gym/RL/Evo) improves Medal Avg 39.39->60.61% on MLE-Bench Lite,done
+2026-08-05,PostTrainBench: Can LLM Agents Automate LLM Post-Training?,2026_posttrainbench,https://arxiv.org/abs/2603.08640,"post-training,ai4ai,agents,eval,rsi",Frontier agents under 10h/H100 can automate post-training: best 23.2% vs official 51.1% avg but 89% vs 67% on BFCL with Gemma-3-4B,done
