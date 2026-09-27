@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Frontis-MA1 — Training an AI4AI Model towards Recursive Self-Improvement</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --bg:#f7f5f1; --card:#ffffff; --ink:#23272f; --muted:#6b7280;
+  --accent:#1e40af; --accent-ink:#1e3a8a; --accent-bg:#eff6ff;
+  --border:#e8e4dc; --radius:16px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif;
+  font-size:17px;line-height:1.85;-webkit-font-smoothing:antialiased}
+.progress{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;z-index:50}
+.wrap{max-width:800px;margin:0 auto;padding:32px 20px 80px}
+.hero{background:linear-gradient(135deg,#1e3a8a,#3b82f6);color:#fff;border-radius:20px;padding:40px 36px}
+.kicker{display:inline-block;font-size:13px;letter-spacing:.1em;background:rgba(255,255,255,.18);padding:4px 14px;border-radius:999px;margin-bottom:16px}
+.hero h1{margin:0 0 10px;font-size:29px;line-height:1.45;font-weight:700}
+.hero .sub{opacity:.88;font-size:14.5px;margin:0}
+.toc{position:sticky;top:12px;background:var(--card);border:1px solid var(--border);border-radius:14px;
+  padding:12px 18px;margin:20px 0;box-shadow:0 2px 12px rgba(0,0,0,.05);z-index:10}
+.toc summary{cursor:pointer;font-weight:600;font-size:14px;color:var(--muted);list-style:none}
+.toc summary::-webkit-details-marker{display:none}
+.toc nav{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.toc a{font-size:13.5px;color:var(--accent-ink);background:var(--accent-bg);padding:4px 12px;border-radius:999px;text-decoration:none}
+.sec{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:30px 34px;margin:0 0 18px;box-shadow:0 1px 6px rgba(0,0,0,.03);scroll-margin-top:80px}
+.sec h2{margin:0 0 18px;font-size:21px;display:flex;align-items:center;gap:12px;line-height:1.5}
+.sec h2 .n{display:inline-flex;width:32px;height:32px;border-radius:50%;background:var(--accent-bg);
+  color:var(--accent-ink);font-size:15px;align-items:center;justify-content:center;flex:none;font-weight:700}
+.sec h3{font-size:17.5px;margin:26px 0 10px}
+.sec h4{font-size:16px;margin:20px 0 8px}
+.sec p{margin:0 0 14px}
+.sec ul,.sec ol{margin:0 0 14px;padding-left:24px}
+.sec li{margin-bottom:10px}
+.sec li::marker{color:var(--accent);font-weight:600}
+.sec-lede{background:linear-gradient(180deg,#eff6ff 0%,#ffffff 100%);border-color:#bfdbfe}
+.sec-lede p{font-size:18px}
+.sec-qa ol{list-style:none;padding:0;counter-reset:q}
+.sec-qa ol>li{counter-increment:q;background:var(--bg);border:1px solid var(--border);border-radius:12px;
+  padding:18px 20px 18px 66px;position:relative;margin-bottom:14px}
+.sec-qa ol>li::before{content:counter(q);position:absolute;left:20px;top:20px;width:30px;height:30px;
+  border-radius:50%;background:var(--accent);color:#fff;font-weight:700;display:flex;align-items:center;
+  justify-content:center;font-size:15px}
+table{width:100%;border-collapse:collapse;font-size:14.5px;margin:6px 0 4px;line-height:1.6}
+th,td{border:1px solid var(--border);padding:9px 12px;text-align:left;vertical-align:top}
+th{background:#f3f4f6;font-weight:600;white-space:nowrap}
+tr:nth-child(even) td{background:#fafafa}
+a{color:var(--accent)}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:#f3f4f6;padding:2px 6px;border-radius:6px;font-size:.88em}
+pre{background:#1f2937;color:#e5e7eb;border-radius:12px;padding:16px 18px;overflow-x:auto}
+pre code{background:none;padding:0;color:inherit}
+.katex{font-size:1.05em}
+.katex-display{margin:18px 0;overflow-x:auto;overflow-y:hidden}
+.tag{display:inline-block;font-size:12.5px;background:#f3f4f6;border:1px solid var(--border);
+  border-radius:999px;padding:2px 10px;margin:2px 4px 2px 0;color:var(--muted)}
+.meta{display:flex;flex-wrap:wrap;gap:2px;margin:4px 0 10px}
+.foot{text-align:center;color:var(--muted);font-size:13.5px;margin-top:36px;line-height:2}
+.foot a{color:var(--accent)}
+@media(max-width:640px){.sec{padding:22px 20px}.hero{padding:30px 24px}.hero h1{font-size:23px}body{font-size:16px}}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="wrap">
+  <header class="hero">
+    <span class="kicker">ai-overall · Frontis-MA1</span>
+    <h1>Frontis-MA1: Training an AI4AI Model towards Recursive Self-Improvement in Machine Learning Engineering</h1>
+    <p class="sub">35B base + 4 原子算子 + 12h/12GB 约束，MLE-Bench Lite 39.39% → 71.21%，接近 GPT-5.6 级别</p>
+  </header>
+  <details class="toc" open>
+    <summary>目录（点击跳转）</summary>
+    <nav><a href="#sec-1">元信息</a><a href="#sec-2">一句话总结</a><a href="#sec-3">核心</a><a href="#sec-4">泛化 / Transfer</a><a href="#sec-5">疑问 / 下一步</a><a href="#sec-6">原文金句</a></nav>
+  </details>
+  <section class="sec" id="sec-1"><h2><span class="n">1</span>元信息</h2>
+  <ul>
+    <li>Title: Frontis-MA1: Training an AI4AI Model towards Recursive Self-Improvement in Machine Learning Engineering</li>
+    <li>Authors / Org: Junlin Yang, Che Jiang, Yu Fu, Tianwei Luo, Can Ren, Weizhi Wang, Kaikai Zhao, Hongyi Liu, Yuxin Zuo, Yuru Wang, Yuchen Fan, Kai Tian, Zhenzhao Yuan, Xiaojian Lin, Li Sheng, Rushi Qiang, Guoli Jia, Xingtai Lv, Ermo Hua, Dianqiao Lei, Youbang Sun, Ning Ding, Bowen Zhou, Kaiyan Zhang / Horizon Research, Frontis.AI, Tsinghua University</li>
+    <li>Link / arXiv: <a href="https://arxiv.org/abs/2607.28568">https://arxiv.org/abs/2607.28568</a> (Submitted 30 Jul 2026)</li>
+    <li>Date read: 2026-08-05</li>
+    <li>Thread: ai overall</li>
+  </ul>
+  <div class="meta"><span class="tag">ai4ai</span><span class="tag">rsi</span><span class="tag">mle</span><span class="tag">agentic-rl</span><span class="tag">post-training</span><span class="tag">openmle</span><span class="tag">meta-evolution</span></div>
+  </section>
+  <section class="sec sec-lede" id="sec-2"><h2><span class="n">2</span>一句话总结</h2>
+  <p>把 Recursive Self-Improvement (RSI) 落到可执行的 Machine Learning Engineering (MLE) 上，建了一个全栈可验证系统 OpenMLE，然后在上面把 35B base 模型 post-train 成 meta-evolution agent Frontis-MA1，用 4 个原子 program-evolution operator (Draft/Improve/Debug/Crossover) 对齐 SFT+RL 和推理时的 long-horizon search，在极低资源(1x RTX 4090 12GB, 12h/task)下把 MLE-Bench Lite Medal Avg 从 39.39% → 60.61%，加上 Max 技巧到 71.21%，接近 GPT-5.6 级别。</p>
+  </section>
+  <section class="sec" id="sec-3"><h2><span class="n">3</span>核心</h2>
+  <h3>3.1 Motivation / RSI 视角</h3>
+  <ul>
+    <li>RSI 需要 AI 去改进“构建 AI”的过程 = AI4AI。MLE（Kaggle 式建模、调参、写 pipeline）是完美的可执行试验场：有明确执行反馈、可验证 metric、可复现。</li>
+    <li>现有 LLM 做 MLE 还是零散 prompting，不具备持续进化的能力。</li>
+    <li>目标：让模型自己学会如何演化程序，而不是只学会写程序。</li>
+  </ul>
+  <h3>3.2 System / Method — OpenMLE 全栈</h3>
+  <p>OpenMLE = 3 层，专门为 RSI 研究设计：</p>
+  <ul>
+    <li><strong>OpenMLE-Gym</strong>：可验证任务环境 + 执行反馈。类似 MLE-Bench / NatureBench 但做成 Gym 接口，输出 medal / score / traceback。</li>
+    <li><strong>OpenMLE-RL</strong>：Operator Learning。对 4 个原子 operator 的学习。</li>
+    <li><strong>OpenMLE-Evo</strong>：Long-horizon Search。把 4 个 operator 组合成进化循环。</li>
+  </ul>
+  <p>4 个原子 operator 是关键抽象，贯穿训练和推理：</p>
+  <ul>
+    <li><code>Draft</code>：从零生成初始 solution</li>
+    <li><code>Improve</code>：在现有 solution 上做增量改进</li>
+    <li><code>Debug</code>：针对报错 / 低分做修复</li>
+    <li><code>Crossover</code>：融合两个不同 solution 的优点</li>
+  </ul>
+  <p>这让 post-training 和 inference 对齐：训练时学的是同样的动作空间，推理时做的就是这些动作的长程组合。</p>
+  <h3>3.3 Training Details</h3>
+  <ul>
+    <li><strong>Base</strong>：35B model（未公开具体，推测自家 base）</li>
+    <li><strong>Execution-grounded SFT</strong>：用执行过的轨迹做 SFT，数据对所有评测 benchmark 去重，防泄漏</li>
+    <li><strong>RL</strong>：在 OpenMLE-Gym 上用执行反馈做 RL，reward 是可验证的 medal / metric 提升，不是人类偏好</li>
+    <li><strong>特点</strong>：训练和搜索耦合（coupling learning and evolution in a single loop），学到的 operator 直接用于进化搜索</li>
+  </ul>
+  <h3>3.4 Key Tricks（3 个值得抄）</h3>
+  <ol>
+    <li><strong>Operator 对齐</strong>：把复杂 MLE 行为压缩成 4 个原子算子，降低 RL 探索空间，同时让 SFT/RL/搜索共享同一接口，非常像 Infra 里把复杂运维抽象成原语。</li>
+    <li><strong>Benchmark-independent Experience Priors + Async Search (Evo-Max)</strong>：Evo-Max 加了与 benchmark 无关的经验先验（历史成功 pattern 库）+ 异步并行搜索，在同样 12h/12GB 约束下从 60.61% → 71.21%。对做 coding data flywheel 的启发：维护一个可迁移的经验库，不依赖特定任务。</li>
+    <li><strong>极致资源约束下的评测</strong>：1x RTX 4090 12GB VRAM, 12h/task。这个 budget 设定迫使系统必须做高效搜索和 early stop，而不是靠堆算力。小规模起步友好——可复现性强。</li>
+  </ol>
+  <h3>3.5 Results</h3>
+  <ul>
+    <li><strong>MLE-Bench Lite</strong> (12h/task, 1x4090 12GB)：
+      <ul>
+        <li>Base → + OpenMLE-Evo: Medal Avg 39.39% → 60.61%</li>
+        <li>+ Evo-Max（经验先验 + 异步）: 71.21%</li>
+        <li>超过 GPT-5.5 + Codex，接近 GPT-5.6 Sol 和 2.8T Kimi K3</li>
+      </ul>
+    </li>
+    <li><strong>NatureBench Lite</strong> (held-out, 测泛化)：
+      <ul>
+        <li>框架固定，换模型：Match-SOTA 50% → 70%（模型本身变强）</li>
+        <li>模型固定，换框架：20% → 50%（OpenMLE-Evo 框架本身可迁移）</li>
+        <li>说明两部分都贡献，框架的 transfer 更惊艳</li>
+      </ul>
+    </li>
+    <li>开源：模型权重 + OpenMLE 全栈，利于复现 RSI 研究</li>
+  </ul>
+  </section>
+  <section class="sec" id="sec-4"><h2><span class="n">4</span>泛化 / Transfer</h2>
+  <h3>对 Infra → Post-training 迁移</h3>
+  <ol>
+    <li>coding data + post-training 自学工作可套用 operator 思想：Draft/Improve/Debug/Crossover 不只是 MLE，coding data curation 也可以定义原子算子（如合成/过滤/去重/评测修复），然后用执行反馈做 RL。</li>
+    <li>Frontis-MA1 证明“把 RL 训练好的小模型 + 强搜索框架”可以打大模型：搭一个 OpenMLE-mini for coding data，用 7B-13B 验证闭环。</li>
+  </ol>
+  <h3>Infra 视角</h3>
+  <ul>
+    <li>可验证环境是瓶颈：OpenMLE-Gym 把执行反馈做成一等公民，和 coding eval flaky 点 + 重试机制一脉相承。</li>
+    <li>成本：12GB 显存约束下打榜，说明 Infra 优化（显存/异步）直接决定算法能走多远。</li>
+    <li>可复现 + 开源是 RSI 领域的新规范，public repo 也应坚持这个。</li>
+  </ul>
+  </section>
+  <section class="sec" id="sec-5"><h2><span class="n">5</span>疑问 / 下一步</h2>
+  <ul>
+    <li><strong>疑问</strong>：4 个 operator 的数据如何采样平衡？Debug 数据少但价值高，是否做了重要性采样？</li>
+    <li><strong>下一步小实验</strong>：在 <code>post-training-rl-infra</code> 里加一个同款 toy：用 7B 模型，定义 2 个 operator (Draft/Debug)，在 1 个 MLE 小任务（如 Titanic）上跑 3 轮进化，看 Medal 能否提升，模拟 OpenMLE-Evo 极简版。</li>
+  </ul>
+  </section>
+  <section class="sec" id="sec-6"><h2><span class="n">6</span>原文金句</h2>
+  <blockquote>
+    <p>Recursive self-improvement (RSI) requires AI systems that improve the process of building AI (i.e., AI4AI); machine learning engineering (MLE) offers a concrete, executable testbed for studying this capability.</p>
+    <p>Aligning post-training and inference around four atomic program-evolution operators (Draft, Improve, Debug, Crossover): the same operators are trained via execution-grounded SFT and RL then composed into long-horizon search, coupling learning and evolution in a single loop.</p>
+  </blockquote>
+  <blockquote>
+    <p>Generated from abstract + arXiv metadata (PDF fetch upstream failed 2026-08-05)，待后续补全 Method 全文后更新。</p>
+  </blockquote>
+  </section>
+  <div class="foot">由 <a href="https://github.com/Papa-Panda/ai-overall/blob/master/papers/2026_frontis-ma1/NOTES.md">GitHub NOTES.md</a> 生成 · 公式由 KaTeX 渲染（需联网加载）</div>
+</div>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  renderMathInElement(document.body, {
+    delimiters: [
+      {left: "$$", right: "$$", display: true},
+      {left: "$", right: "$", display: false}
+    ],
+    throwOnError: false
+  });
+  var bar = document.getElementById("progress");
+  window.addEventListener("scroll", function() {
+    var h = document.documentElement;
+    var p = h.scrollTop / (h.scrollHeight - h.clientHeight) * 100;
+    bar.style.width = p + "%";
+  }, {passive: true});
+});
+</script>
+</body>
+</html>

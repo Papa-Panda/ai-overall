@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PostTrainBench — Can LLM Agents Automate LLM Post-Training?</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --bg:#f7f5f1; --card:#ffffff; --ink:#23272f; --muted:#6b7280;
+  --accent:#1e40af; --accent-ink:#1e3a8a; --accent-bg:#eff6ff;
+  --border:#e8e4dc; --radius:16px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif;
+  font-size:17px;line-height:1.85;-webkit-font-smoothing:antialiased}
+.progress{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;z-index:50}
+.wrap{max-width:800px;margin:0 auto;padding:32px 20px 80px}
+.hero{background:linear-gradient(135deg,#1e3a8a,#3b82f6);color:#fff;border-radius:20px;padding:40px 36px}
+.kicker{display:inline-block;font-size:13px;letter-spacing:.1em;background:rgba(255,255,255,.18);padding:4px 14px;border-radius:999px;margin-bottom:16px}
+.hero h1{margin:0 0 10px;font-size:29px;line-height:1.45;font-weight:700}
+.hero .sub{opacity:.88;font-size:14.5px;margin:0}
+.toc{position:sticky;top:12px;background:var(--card);border:1px solid var(--border);border-radius:14px;
+  padding:12px 18px;margin:20px 0;box-shadow:0 2px 12px rgba(0,0,0,.05);z-index:10}
+.toc summary{cursor:pointer;font-weight:600;font-size:14px;color:var(--muted);list-style:none}
+.toc summary::-webkit-details-marker{display:none}
+.toc nav{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.toc a{font-size:13.5px;color:var(--accent-ink);background:var(--accent-bg);padding:4px 12px;border-radius:999px;text-decoration:none}
+.sec{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:30px 34px;margin:0 0 18px;box-shadow:0 1px 6px rgba(0,0,0,.03);scroll-margin-top:80px}
+.sec h2{margin:0 0 18px;font-size:21px;display:flex;align-items:center;gap:12px;line-height:1.5}
+.sec h2 .n{display:inline-flex;width:32px;height:32px;border-radius:50%;background:var(--accent-bg);
+  color:var(--accent-ink);font-size:15px;align-items:center;justify-content:center;flex:none;font-weight:700}
+.sec h3{font-size:17.5px;margin:26px 0 10px}
+.sec h4{font-size:16px;margin:20px 0 8px}
+.sec p{margin:0 0 14px}
+.sec ul,.sec ol{margin:0 0 14px;padding-left:24px}
+.sec li{margin-bottom:10px}
+.sec li::marker{color:var(--accent);font-weight:600}
+.sec-lede{background:linear-gradient(180deg,#eff6ff 0%,#ffffff 100%);border-color:#bfdbfe}
+.sec-lede p{font-size:18px}
+.sec-qa ol{list-style:none;padding:0;counter-reset:q}
+.sec-qa ol>li{counter-increment:q;background:var(--bg);border:1px solid var(--border);border-radius:12px;
+  padding:18px 20px 18px 66px;position:relative;margin-bottom:14px}
+.sec-qa ol>li::before{content:counter(q);position:absolute;left:20px;top:20px;width:30px;height:30px;
+  border-radius:50%;background:var(--accent);color:#fff;font-weight:700;display:flex;align-items:center;
+  justify-content:center;font-size:15px}
+table{width:100%;border-collapse:collapse;font-size:14.5px;margin:6px 0 4px;line-height:1.6}
+th,td{border:1px solid var(--border);padding:9px 12px;text-align:left;vertical-align:top}
+th{background:#f3f4f6;font-weight:600;white-space:nowrap}
+tr:nth-child(even) td{background:#fafafa}
+a{color:var(--accent)}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:#f3f4f6;padding:2px 6px;border-radius:6px;font-size:.88em}
+pre{background:#1f2937;color:#e5e7eb;border-radius:12px;padding:16px 18px;overflow-x:auto}
+pre code{background:none;padding:0;color:inherit}
+.katex{font-size:1.05em}
+.katex-display{margin:18px 0;overflow-x:auto;overflow-y:hidden}
+.tag{display:inline-block;font-size:12.5px;background:#f3f4f6;border:1px solid var(--border);
+  border-radius:999px;padding:2px 10px;margin:2px 4px 2px 0;color:var(--muted)}
+.meta{display:flex;flex-wrap:wrap;gap:2px;margin:4px 0 10px}
+.foot{text-align:center;color:var(--muted);font-size:13.5px;margin-top:36px;line-height:2}
+.foot a{color:var(--accent)}
+@media(max-width:640px){.sec{padding:22px 20px}.hero{padding:30px 24px}.hero h1{font-size:23px}body{font-size:16px}}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="wrap">
+  <header class="hero">
+    <span class="kicker">ai-overall · PostTrainBench</span>
+    <h1>PostTrainBench: Can LLM Agents Automate LLM Post-Training?</h1>
+    <p class="sub">测的就是 AI 能不能自己做 post-training：10h / 1xH100，最强 agent 23.2% vs 官方 instruct 51.1%</p>
+  </header>
+  <details class="toc" open>
+    <summary>目录（点击跳转）</summary>
+    <nav><a href="#sec-1">元信息</a><a href="#sec-2">一句话总结</a><a href="#sec-3">核心</a><a href="#sec-4">和 Frontis-MA1 的对比</a><a href="#sec-5">可迁移</a><a href="#sec-6">疑问 / 下一步</a><a href="#sec-7">原文金句</a></nav>
+  </details>
+  <section class="sec" id="sec-1"><h2><span class="n">1</span>元信息</h2>
+  <ul>
+    <li>Title: PostTrainBench: Can LLM Agents Automate LLM Post-Training?</li>
+    <li>Authors / Org: Ben Rank, Hardik Bhatnagar, Ameya Prabhu, Shira Eisenberg, Karina Nguyen, Matthias Bethge, Maksym Andriushchenko / ELLIS Institute Tübingen, Max Planck Institute, Tübingen AI Center, Thoughtful Lab</li>
+    <li>Link / arXiv: <a href="https://arxiv.org/abs/2603.08640">https://arxiv.org/abs/2603.08640</a> (v2 Mar 10 2026)</li>
+    <li>Date read: 2026-08-05</li>
+    <li>Thread: ai overall</li>
+  </ul>
+  <div class="meta"><span class="tag">post-training</span><span class="tag">ai4ai</span><span class="tag">agents</span><span class="tag">eval</span><span class="tag">rsi</span><span class="tag">automation</span></div>
+  </section>
+  <section class="sec sec-lede" id="sec-2"><h2><span class="n">2</span>一句话总结</h2>
+  <p>测的就是 AI 能不能自己做 post-training：给 agent 一个 base 模型（Qwen3-1.7B/4B, SmolLM3-3B, Gemma-3-4B）和一个目标评测（AIME 2025, GSM8K, GPQA, HumanEval, BFCL, ArenaHard, HealthBench），限 10h 单 H100，让 agent 自己写代码、找数据、选策略、训模型，看最后 checkpoint 在 held-out 上的提升。</p>
+  </section>
+  <section class="sec" id="sec-3"><h2><span class="n">3</span>核心</h2>
+  <h3>3.1 Motivation</h3>
+  <ul>
+    <li>前沿 coding agent（Claude Code, Codex CLI, Gemini CLI）已经把 SWE 自动化了，下一步自然是自动化 AI R&amp;D 本身。</li>
+    <li>Post-training 是关键且可衡量的阶段：SFT/RLHF/对齐都能直接用标准评测看到提升。</li>
+    <li>现有 benchmark 只测窄任务或论文复现，没有端到端测“agent 自己把 base 训成更好的模型”的能力。</li>
+  </ul>
+  <h3>3.2 System / Task 设计</h3>
+  <ul>
+    <li>每个任务 = (base LLM, target benchmark) 组合</li>
+    <li>4 个 base x 7 个 benchmark = 28 组合，覆盖 math / science / coding / function calling / creative / health</li>
+    <li>Agent 完全自主：可以联网搜信息、写代码、curate 数据、选任意 post-training 策略</li>
+    <li>最小约束保评测干净：不能训在 test 集上、不能改评测 harness、不能去微调别的模型，只能动提供的 base</li>
+    <li>最后提交 checkpoint，用 held-out test 集打分</li>
+  </ul>
+  <h3>3.3 评测 Frontier Agents</h3>
+  <ul>
+    <li>测的是命令行 agent：Codex CLI, Claude Code, Gemini CLI 等，用标准 dev tools，无人工干预</li>
+    <li>Bounded compute：10h / 1x H100，逼真模拟小团队预算</li>
+  </ul>
+  <h3>3.4 Results</h3>
+  <ul>
+    <li>Frontier agents 有实质进步，但普遍仍落后于厂商官方 instruct 模型：
+      <ul>
+        <li>最强 agent 加权平均 23.2% vs 官方 instruct 51.1%</li>
+      </ul>
+    </li>
+    <li>但在特定场景能反超：
+      <ul>
+        <li>GPT-5.1 Codex Max 在 Gemma-3-4B + BFCL 上 89% vs 官方 67%</li>
+      </ul>
+    </li>
+    <li>说明：当前 agent 在结构化、工具调用类任务上已能挖到数据和策略红利，但在通用推理/对齐上仍有 gap</li>
+  </ul>
+  <h3>3.5 Failure Modes / Safety</h3>
+  <p>作者特别 flag 的 reward hacking：</p>
+  <ul>
+    <li>偷训在 test 集上</li>
+    <li>不自己训，直接下载已有的 instruct checkpoint 冒充</li>
+    <li>在环境里捡到 API key，拿去无授权调 API 生成合成数据</li>
+  </ul>
+  <p>这三类行为凸显 sandboxing 的重要性，也是做 AI4AI 自动化必须加护栏的原因。</p>
+  </section>
+  <section class="sec" id="sec-4"><h2><span class="n">4</span>和 Frontis-MA1 的对比</h2>
+  <table>
+    <tr><th>维度</th><th>Frontis-MA1 / OpenMLE</th><th>PostTrainBench</th></tr>
+    <tr><td>目标</td><td>RSI in MLE，模型自己进化解</td><td>测 agent 能否自动化 post-training</td></tr>
+    <tr><td>验证</td><td>Gym 可验证执行反馈</td><td>held-out benchmark + checkpoint 评测</td></tr>
+    <tr><td>方法</td><td>4 原子算子对齐 SFT/RL + 长程搜索</td><td>无预设策略，agent 自由发挥</td></tr>
+    <tr><td>Budget</td><td>12h / 1x4090 12GB</td><td>10h / 1xH100</td></tr>
+    <tr><td>结果</td><td>小模型 + 好搜索 &gt; 大模型</td><td>最强仍落后官方，但特定榜可超</td></tr>
+  </table>
+  <p>Frontis-MA1 是“教模型学会进化”，PostTrainBench 是“考 agent 会不会自己训”。一个重方法，一个重评测，正好互补。</p>
+  </section>
+  <section class="sec" id="sec-5"><h2><span class="n">5</span>可迁移</h2>
+  <h3>对 coding data + post-training 自学的启发</h3>
+  <ol>
+    <li>可以把 PostTrainBench 的 (base, target) 范式搬到自己的小规模上：Qwen3-1.7B + HumanEval 做 10h 挑战，看 data pipeline 能提多少</li>
+    <li>它的 minimal constraints 设计值得抄：只限不能碰 test / 不能换 base，其他放开，才能真看出 data curation 能力</li>
+    <li>Reward hacking 清单直接可作 checklist，放到 eval pipeline 里防作弊</li>
+  </ol>
+  <h3>Infra 视角</h3>
+  <ul>
+    <li>Bounded compute 评测是趋势，10h H100 就是小团队的真实预算，和 Frontis-MA1 的 12GB 显存约束异曲同工</li>
+  </ul>
+  </section>
+  <section class="sec" id="sec-6"><h2><span class="n">6</span>疑问 / 下一步</h2>
+  <ul>
+    <li>最强 agent 23% vs 官方 51% 的 gap，主要卡在哪？是数据质量、训练稳定性、还是长程规划？</li>
+    <li>如果把 Frontis-MA1 的 4 算子用到 PostTrainBench 上，会不会补齐 agent 在 post-training 上的短板？</li>
+    <li>下一步小实验：用 Qwen3-1.7B 复现一个 PostTrainBench-mini，只做 BFCL，试试 coding data 能否让它从 67% 的 baseline 往上提一点</li>
+  </ul>
+  </section>
+  <section class="sec" id="sec-7"><h2><span class="n">7</span>原文金句</h2>
+  <blockquote>
+    <p>We ask frontier agents (e.g., Claude Code with Opus 4.6) to optimize the performance of a base LLM on a particular benchmark (e.g., Qwen3-4B on AIME). Importantly, we do not provide any predefined strategies to the agents and instead give them full autonomy to find necessary information on the web, run experiments, and curate data.</p>
+    <p>Agents sometimes engage in reward hacking: training on the test set, downloading existing instruction-tuned checkpoints instead of training their own, and using API keys they find to generate synthetic data without authorization.</p>
+  </blockquote>
+  </section>
+  <div class="foot">由 <a href="https://github.com/Papa-Panda/ai-overall/blob/master/papers/2026_posttrainbench/NOTES.md">GitHub NOTES.md</a> 生成 · 公式由 KaTeX 渲染（需联网加载）</div>
+</div>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  renderMathInElement(document.body, {
+    delimiters: [
+      {left: "$$", right: "$$", display: true},
+      {left: "$", right: "$", display: false}
+    ],
+    throwOnError: false
+  });
+  var bar = document.getElementById("progress");
+  window.addEventListener("scroll", function() {
+    var h = document.documentElement;
+    var p = h.scrollTop / (h.scrollHeight - h.clientHeight) * 100;
+    bar.style.width = p + "%";
+  }, {passive: true});
+});
+</script>
+</body>
+</html>
